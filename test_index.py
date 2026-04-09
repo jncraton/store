@@ -1,5 +1,15 @@
-def test_index_has_title_and_heading():
-    with open('index.html', 'r', encoding='utf-8') as f:
-        html = f.read()
-    assert '<title>' in html.lower() or '<title ' in html.lower()
-    assert '<h1' in html.lower() or '<header' in html.lower()
+import re
+from playwright.sync_api import Page, expect
+import pytest
+
+from pathlib import Path
+
+file_url = Path("index.html").resolve().as_uri()
+
+@pytest.fixture
+def root(page: Page):
+    page.goto(f"{file_url}#")
+    return page
+
+def test_page_title(root):
+    expect(root).to_have_title("Quote Submitter")
