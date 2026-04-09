@@ -1,113 +1,142 @@
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>Quote Submitter</title>
-  <style>
-    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
-    form { display: flex; flex-direction: column; gap: 1rem; }
-    label { display: flex; flex-direction: column; font-weight: bold; }
-    input, textarea { padding: 0.5rem; margin-top: 0.25rem; }
-    button { padding: 0.75rem; background: #238636; color: white; border: none; cursor: pointer; }
-    button:disabled { background: #808080; }
-    #status { margin-top: 1rem; padding: 1rem; display: none; }
-  </style>
-</head>
-<body>
-  <h1>Add New Quote</h1>
-  <form id='quoteForm'>
-    <label>
-      GitHub Personal Access Token
-      <input type='password' id='pat' required placeholder='ghp_...'>
-    </label>
-    <label>
-      Source
-      <input type='text' id='source' required>
-    </label>
-    <label>
-      Content
-      <textarea id='content' required rows='4'></textarea>
-    </label>
-    <label>
-      Source URI
-      <input type='url' id='sourceURI' required>
-    </label>
-    <button type='submit' id='submitBtn'>Append to Repository</button>
-  </form>
-  <div id='status'></div>
-
-  <script>
-    const form = document.getElementById('quoteForm')
-    const status = document.getElementById('status')
-    const btn = document.getElementById('submitBtn')
-
-    const owner = 'jncraton'
-    const repo = 'quotes'
-    const path = 'quotes.tsv'
-
-    function updateStatus(msg, isError = false) {
-      status.innerText = msg
-      status.style.display = 'block'
-      status.style.backgroundColor = isError ? '#ffdce0' : '#dafbe1'
-    }
-
-    async function getFileData(token) {
-      const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
-      const response = await fetch(url, {
-        headers: { 'Authorization': `token ${token}` }
-      })
-      if (!response.ok) throw new Error('Failed to fetch file metadata')
-      return response.json()
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      btn.disabled = true
-      updateStatus('Processing...')
-
-      const pat = document.getElementById('pat').value
-      const source = document.getElementById('source').value
-      const content = document.getElementById('content').value
-      const sourceURI = document.getElementById('sourceURI').value
-
-      const newRow = `${source}\t${content}\t${sourceURI}\n`
-
-      try {
-        const fileData = await getFileData(pat)
-        const currentContent = atob(fileData.content)
-        const updatedContent = currentContent.endsWith('\n') 
-          ? currentContent + newRow 
-          : currentContent + '\n' + newRow
-
-        const updateUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
-        const response = await fetch(updateUrl, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${pat}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: `Add quote by ${source}`,
-            content: btoa(unescape(encodeURIComponent(updatedContent))),
-            sha: fileData.sha
-          })
-        })
-
-        if (response.ok) {
-          updateStatus('Successfully appended to TSV')
-          form.reset()
-          document.getElementById('pat').value = pat
-        } else {
-          const err = await response.json()
-          throw new Error(err.message || 'Update failed')
-        }
-      } catch (err) {
-        updateStatus(`Error: ${err.message}`, true)
-      } finally {
-        btn.disabled = false
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quote Submitter</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
       }
-    })
-  </script>
-</body>
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        font-weight: bold;
+      }
+      input,
+      textarea {
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+      }
+      button {
+        padding: 0.75rem;
+        background: #238636;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #808080;
+      }
+      #status {
+        margin-top: 1rem;
+        padding: 1rem;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Add New Quote</h1>
+    <form id="quoteForm">
+      <label>
+        GitHub Personal Access Token
+        <input type="password" id="pat" required placeholder="ghp_..." />
+      </label>
+      <label>
+        Source
+        <input type="text" id="source" required />
+      </label>
+      <label>
+        Content
+        <textarea id="content" required rows="4"></textarea>
+      </label>
+      <label>
+        Source URI
+        <input type="url" id="sourceURI" required />
+      </label>
+      <button type="submit" id="submitBtn">Append to Repository</button>
+    </form>
+    <div id="status"></div>
+
+    <script>
+      const form = document.getElementById('quoteForm');
+      const status = document.getElementById('status');
+      const btn = document.getElementById('submitBtn');
+
+      const owner = 'jncraton';
+      const repo = 'quotes';
+      const path = 'quotes.tsv';
+
+      function updateStatus(msg, isError = false) {
+        status.innerText = msg;
+        status.style.display = 'block';
+        status.style.backgroundColor = isError ? '#ffdce0' : '#dafbe1';
+      }
+
+      async function getFileData(token) {
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const response = await fetch(url, {
+          headers: { Authorization: `token ${token}` },
+        });
+        if (!response.ok) throw new Error('Failed to fetch file metadata');
+        return response.json();
+      }
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        btn.disabled = true;
+        updateStatus('Processing...');
+
+        const pat = document.getElementById('pat').value;
+        const source = document.getElementById('source').value;
+        const content = document.getElementById('content').value;
+        const sourceURI = document.getElementById('sourceURI').value;
+
+        const newRow = `${source}\t${content}\t${sourceURI}\n`;
+
+        try {
+          const fileData = await getFileData(pat);
+          const currentContent = atob(fileData.content);
+          const updatedContent = currentContent.endsWith('\n')
+            ? currentContent + newRow
+            : currentContent + '\n' + newRow;
+
+          const updateUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+          const response = await fetch(updateUrl, {
+            method: 'PUT',
+            headers: {
+              Authorization: `token ${pat}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: `Add quote by ${source}`,
+              content: btoa(unescape(encodeURIComponent(updatedContent))),
+              sha: fileData.sha,
+            }),
+          });
+
+          if (response.ok) {
+            updateStatus('Successfully appended to TSV');
+            form.reset();
+            document.getElementById('pat').value = pat;
+          } else {
+            const err = await response.json();
+            throw new Error(err.message || 'Update failed');
+          }
+        } catch (err) {
+          updateStatus(`Error: ${err.message}`, true);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
 </html>
