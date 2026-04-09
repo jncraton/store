@@ -6,15 +6,21 @@ on:
       - 'v*.*.*'
 
 jobs:
-  release:
+  Release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Build Site
+        run: make
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
           files: |
-            index.html
-            public/**
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
