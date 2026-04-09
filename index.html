@@ -67,49 +67,49 @@
     <div id="status"></div>
 
     <script>
-      const form = document.getElementById('quoteForm');
-      const status = document.getElementById('status');
-      const btn = document.getElementById('submitBtn');
+      const form = document.getElementById('quoteForm')
+      const status = document.getElementById('status')
+      const btn = document.getElementById('submitBtn')
 
-      const owner = 'jncraton';
-      const repo = 'quotes';
-      const path = 'quotes.tsv';
+      const owner = 'jncraton'
+      const repo = 'quotes'
+      const path = 'quotes.tsv'
 
       function updateStatus(msg, isError = false) {
-        status.innerText = msg;
-        status.style.display = 'block';
-        status.style.backgroundColor = isError ? '#ffdce0' : '#dafbe1';
+        status.innerText = msg
+        status.style.display = 'block'
+        status.style.backgroundColor = isError ? '#ffdce0' : '#dafbe1'
       }
 
       async function getFileData(token) {
-        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
         const response = await fetch(url, {
           headers: { Authorization: `token ${token}` },
-        });
-        if (!response.ok) throw new Error('Failed to fetch file metadata');
-        return response.json();
+        })
+        if (!response.ok) throw new Error('Failed to fetch file metadata')
+        return response.json()
       }
 
       form.addEventListener('submit', async e => {
-        e.preventDefault();
-        btn.disabled = true;
-        updateStatus('Processing...');
+        e.preventDefault()
+        btn.disabled = true
+        updateStatus('Processing...')
 
-        const pat = document.getElementById('pat').value;
-        const source = document.getElementById('source').value;
-        const content = document.getElementById('content').value;
-        const sourceURI = document.getElementById('sourceURI').value;
+        const pat = document.getElementById('pat').value
+        const source = document.getElementById('source').value
+        const content = document.getElementById('content').value
+        const sourceURI = document.getElementById('sourceURI').value
 
-        const newRow = `${source}\t${content}\t${sourceURI}\n`;
+        const newRow = `${source}\t${content}\t${sourceURI}\n`
 
         try {
-          const fileData = await getFileData(pat);
-          const currentContent = atob(fileData.content);
+          const fileData = await getFileData(pat)
+          const currentContent = atob(fileData.content)
           const updatedContent = currentContent.endsWith('\n')
             ? currentContent + newRow
-            : currentContent + '\n' + newRow;
+            : currentContent + '\n' + newRow
 
-          const updateUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+          const updateUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`
           const response = await fetch(updateUrl, {
             method: 'PUT',
             headers: {
@@ -121,22 +121,22 @@
               content: btoa(unescape(encodeURIComponent(updatedContent))),
               sha: fileData.sha,
             }),
-          });
+          })
 
           if (response.ok) {
-            updateStatus('Successfully appended to TSV');
-            form.reset();
-            document.getElementById('pat').value = pat;
+            updateStatus('Successfully appended to TSV')
+            form.reset()
+            document.getElementById('pat').value = pat
           } else {
-            const err = await response.json();
-            throw new Error(err.message || 'Update failed');
+            const err = await response.json()
+            throw new Error(err.message || 'Update failed')
           }
         } catch (err) {
-          updateStatus(`Error: ${err.message}`, true);
+          updateStatus(`Error: ${err.message}`, true)
         } finally {
-          btn.disabled = false;
+          btn.disabled = false
         }
-      });
+      })
     </script>
   </body>
 </html>
