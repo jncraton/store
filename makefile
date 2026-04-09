@@ -6,9 +6,6 @@ lint:
 format:
 	npx --yes prettier@3.6.2 --write .
 
-lint:
-	npx --yes --check .
-
 test:
 	uv run --with pytest-playwright==0.7.2 python -m playwright install chromium firefox
 	uv run --with pytest-playwright==0.7.2 python -m pytest --browser chromium --browser firefox
