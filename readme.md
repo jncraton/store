@@ -6,3 +6,5 @@
 [![Release](https://github.com/jncraton/store/actions/workflows/release.yml/badge.svg)](https://github.com/jncraton/store/actions/workflows/release.yml)
 
 This is a test project to explore using a Github PAT and a separate repo as a storage backend.
+
+[Demo](https://jncraton.github.io/store/)
